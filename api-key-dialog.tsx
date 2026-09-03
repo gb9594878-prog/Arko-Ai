@@ -2,121 +2,56 @@
 
 import { useState } from "react";
 
-export default function ApiKeyDialog() {
-  const [apiKey, setApiKey] = useState("");
+interface ApiKeyDialogProps {
+  initialKey?: string;
+  onSave?: (key: string) => void;
+  onClose?: () => void;
+  dismissible?: boolean;
+}
+
+export function ApiKeyDialog({ 
+  initialKey = "", 
+  onSave, 
+  onClose,
+  dismissible = true 
+}: ApiKeyDialogProps) {
+  const [apiKey, setApiKey] = useState(initialKey);
   const [showKey, setShowKey] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const saveKey = () => {
     const key = apiKey.trim();
-
     if (!key) {
       alert("Please enter your API key");
       return;
     }
-
-    // Accept any valid API key format.
-    // Do NOT restrict the key to only AIza... keys.
+    // Accept any format - no AIza check
     localStorage.setItem("arko_api_key", key);
-
-    setSaved(true);
-
-    setTimeout(() => {
+    if (onSave) {
+      onSave(key);
+    } else {
       window.location.reload();
-    }, 700);
+    }
+    if (onClose) {
+      onClose();
+    }
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#000",
-        padding: "20px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "600px",
-          background: "#1f1f1f",
-          border: "1px solid #333",
-          borderRadius: "24px",
-          padding: "32px",
-          color: "white",
-        }}
-      >
-        <h1 style={{ marginBottom: "12px" }}>
-          Connect your AI API key
-        </h1>
-
-        <p
-          style={{
-            color: "#aaa",
-            fontSize: "17px",
-            lineHeight: "1.7",
-            marginBottom: "24px",
-          }}
-        >
-          Paste your API key to start chatting with Arko AI.
-        </p>
-
-        <div style={{ position: "relative" }}>
-          <input
-            type={showKey ? "text" : "password"}
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Enter your API key..."
-            style={{
-              width: "100%",
-              boxSizing: "border-box",
-              padding: "18px",
-              paddingRight: "70px",
-              borderRadius: "14px",
-              border: "1px solid #555",
-              background: "#111",
-              color: "white",
-              fontSize: "16px",
-            }}
-          />
-
-          <button
-            type="button"
-            onClick={() => setShowKey(!showKey)}
-            style={{
-              position: "absolute",
-              right: "10px",
-              top: "10px",
-              bottom: "10px",
-              border: "none",
-              borderRadius: "10px",
-              padding: "0 12px",
-              cursor: "pointer",
-            }}
-          >
-            {showKey ? "Hide" : "Show"}
-          </button>
+    <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.8)", padding: "20px", zIndex: 9999 }}>
+      <div style={{ background: "#111", border: "1px solid #333", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "400px" }}>
+        <h2 style={{ color: "white", fontSize: "18px", marginBottom: "8px" }}>Connect API key</h2>
+        <p style={{ color: "#888", fontSize: "14px", marginBottom: "20px" }}>Enter any API key to start</p>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "20px", background: "#222", borderRadius: "10px", padding: "8px" }}>
+          <input type={showKey ? "text" : "password"} value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Enter your API key..." style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "white" }} />
+          <button onClick={() => setShowKey(!showKey)} style={{ color: "white", background: "transparent", border: "none", fontSize: "12px" }}>{showKey ? "Hide" : "Show"}</button>
         </div>
-
-        <button
-          onClick={saveKey}
-          style={{
-            width: "100%",
-            marginTop: "20px",
-            padding: "17px",
-            borderRadius: "14px",
-            border: "none",
-            fontSize: "18px",
-            fontWeight: "bold",
-            cursor: "pointer",
-          }}
-        >
-          {saved ? "Key Saved ✓" : "Save key"}
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          {dismissible && onClose && <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "#222", color: "white", borderRadius: "10px", border: "none" }}>Cancel</button>}
+          <button onClick={saveKey} style={{ flex: 2, padding: "12px", background: "white", color: "black", borderRadius: "10px", fontWeight: "bold", border: "none" }}>Save key</button>
+        </div>
       </div>
     </div>
   );
 }
+
+export default ApiKeyDialog;
