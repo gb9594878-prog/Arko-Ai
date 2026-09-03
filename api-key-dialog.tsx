@@ -1,52 +1,122 @@
+"use client";
 
-"use client"
-import { useState } from "react"
-import { Eye, EyeOff, KeyRound, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { validateGeminiKey } from "@/lib/gemini"
+import { useState } from "react";
 
-interface ApiKeyDialogProps {
-  initialKey?: string
-  onSave: (key: string) => void
-  onClose: () => void
-  dismissible?: boolean
-}
+export default function ApiKeyDialog() {
+  const [apiKey, setApiKey] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-export function ApiKeyDialog({ initialKey = "", onSave, onClose, dismissible = true }: ApiKeyDialogProps) {
-  const [value, setValue] = useState(initialKey)
-  const [show, setShow] = useState(false)
-  const [checking, setChecking] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const saveKey = () => {
+    const key = apiKey.trim();
 
-  async function handleSave() {
-    const key = value.trim()
-    if (!key) { setError("Please enter your API key."); return }
-    setChecking(true); setError(null)
-    const result = await validateGeminiKey(key)
-    setChecking(false)
-    if (!result.valid) { setError(result.error || "Invalid API Key"); return }
-    onSave(key)
-  }
+    if (!key) {
+      alert("Please enter your API key");
+      return;
+    }
+
+    // Accept any valid API key format.
+    // Do NOT restrict the key to only AIza... keys.
+    localStorage.setItem("arko_api_key", key);
+
+    setSaved(true);
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 700);
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={dismissible ? onClose : undefined} />
-      <div role="dialog" className="relative w-full max-w-md rounded-2xl border bg-card p-6 shadow-xl">
-        <div className="mb-4 flex size-11 items-center justify-center rounded-xl bg-muted"><KeyRound className="size-5" /></div>
-        <h2 className="text-lg font-semibold">Connect your Gemini API Key</h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">Paste your key to start. Key is stored in browser only.</p>
-        <div className="mt-5">
-          <div className="relative">
-            <input id="api-key" type={show ? "text" : "password"} value={value} onChange={(e) => { setValue(e.target.value); if (error) setError(null) }} onKeyDown={(e) => { if (e.key === "Enter") handleSave() }} placeholder="AIza..." className="h-11 w-full rounded-lg border bg-background px-4 pr-10 text-sm outline-none" />
-            <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-muted">{show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button>
-          </div>
-          {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#000",
+        padding: "20px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "600px",
+          background: "#1f1f1f",
+          border: "1px solid #333",
+          borderRadius: "24px",
+          padding: "32px",
+          color: "white",
+        }}
+      >
+        <h1 style={{ marginBottom: "12px" }}>
+          Connect your AI API key
+        </h1>
+
+        <p
+          style={{
+            color: "#aaa",
+            fontSize: "17px",
+            lineHeight: "1.7",
+            marginBottom: "24px",
+          }}
+        >
+          Paste your API key to start chatting with Arko AI.
+        </p>
+
+        <div style={{ position: "relative" }}>
+          <input
+            type={showKey ? "text" : "password"}
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Enter your API key..."
+            style={{
+              width: "100%",
+              boxSizing: "border-box",
+              padding: "18px",
+              paddingRight: "70px",
+              borderRadius: "14px",
+              border: "1px solid #555",
+              background: "#111",
+              color: "white",
+              fontSize: "16px",
+            }}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowKey(!showKey)}
+            style={{
+              position: "absolute",
+              right: "10px",
+              top: "10px",
+              bottom: "10px",
+              border: "none",
+              borderRadius: "10px",
+              padding: "0 12px",
+              cursor: "pointer",
+            }}
+          >
+            {showKey ? "Hide" : "Show"}
+          </button>
         </div>
-        <div className="mt-6 flex justify-end gap-2">
-          {dismissible && (<Button variant="ghost" onClick={onClose}>Later</Button>)}
-          <Button onClick={handleSave} disabled={checking}>{checking ? <><Loader2 className="mr-2 size-4 animate-spin" />Checking...</> : "Save & Continue"}</Button>
-        </div>
+
+        <button
+          onClick={saveKey}
+          style={{
+            width: "100%",
+            marginTop: "20px",
+            padding: "17px",
+            borderRadius: "14px",
+            border: "none",
+            fontSize: "18px",
+            fontWeight: "bold",
+            cursor: "pointer",
+          }}
+        >
+          {saved ? "Key Saved ✓" : "Save key"}
+        </button>
       </div>
     </div>
-  )
+  );
 }
